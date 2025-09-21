@@ -131,24 +131,25 @@
             }
 
             try {
-                // URL de tu Google Apps Script
-                const response = await fetch('https://script.google.com/macros/s/AKfycbzdrZMp3WIelc6T5n1nI8Zp0xO-i0b9fTu-QBPszGLoBHP7DkMD3-Nvii5mV4K5RsFH/exec', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'unsubscribe',
-                        email: email,
-                        timestamp: new Date().toISOString()
-                    })
+                // Usar method GET con parámetros para evitar CORS preflight
+                const params = new URLSearchParams({
+                    action: 'unsubscribe',
+                    email: email,
+                    timestamp: new Date().toISOString()
                 });
 
-                if (response.ok) {
+                const response = await fetch(`https://script.google.com/macros/s/AKfycbzePE0NQ2jZPcGOCHKn7PdcHBMD4TPu4gf8jqK7gVNpGMfIurIVeo2yPQ-bwgGF1UZY/exec?${params}`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
                     document.getElementById('unsubscribe-form').style.display = 'none';
                     document.getElementById('success-message').style.display = 'block';
                 } else {
-                    throw new Error('Error en la respuesta del servidor');
+                    throw new Error(result.error || 'Error desconocido');
                 }
             } catch (error) {
                 console.error('Error:', error);
