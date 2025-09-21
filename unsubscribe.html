@@ -96,9 +96,74 @@
                 <input type="email" id="email" placeholder="tu@email.com" required>
             </div>
             
-            <button class="btn" onclick="unsubscribe()">✅ Sí, darme de baja</button>
-            <button class="btn btn-secondary" onclick="goBack()">❌ No, mantener suscripción</button>
+            <button class="btn" onclick="handleUnsubscribe()">✅ Sí, darme de baja</button>
+            <button class="btn btn-secondary" onclick="handleGoBack()">❌ No, mantener suscripción</button>
         </div>
         
         <div id="success-message" class="success-message">
             <h3>✅ Te has dado de baja exitosamente</h3>
+            <p>Ya no recibirás más emails de nuestro newsletter. Lamentamos verte partir, pero respetamos tu decisión.</p>
+            <p>Si cambias de opinión, siempre puedes volver a suscribirte.</p>
+        </div>
+        
+        <div id="error-message" class="error-message">
+            <h3>❌ Error al procesar la solicitud</h3>
+            <p>Hubo un problema al procesar tu solicitud. Por favor, intenta nuevamente o contáctanos directamente.</p>
+        </div>
+    </div>
+
+    <script>
+        // Obtener email de la URL si está presente
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const email = urlParams.get('email');
+            if (email) {
+                document.getElementById('email').value = email;
+            }
+        };
+
+        async function handleUnsubscribe() {
+            const email = document.getElementById('email').value;
+            
+            if (!email || !validateEmail(email)) {
+                alert('Por favor, ingresa un email válido');
+                return;
+            }
+
+            try {
+                const params = new URLSearchParams({
+                    action: 'unsubscribe',
+                    email: email,
+                    timestamp: new Date().toISOString()
+                });
+
+                const response = await fetch(`https://script.google.com/macros/s/AKfycbzTWjzDNn8Ru2GPh--9Yv7LBoq0XQS9mIBIYdWI3P2jcTNKFKDRn6voMPVAxN7QjGxL/exec?${params}`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('unsubscribe-form').style.display = 'none';
+                    document.getElementById('success-message').style.display = 'block';
+                } else {
+                    throw new Error(result.error || 'Error desconocido');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('error-message').style.display = 'block';
+            }
+        }
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function handleGoBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>
